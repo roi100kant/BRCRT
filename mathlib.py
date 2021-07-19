@@ -42,21 +42,22 @@ _small_odd_primes = [
 
 _miller_rabin_rounds = { 150:27, 200:18, 250:15, 300:12, 350:9, 400:8,
                         450:7, 550:6, 650:5, 850:4, 1250:3}
-                        
+
 def bit_len(n):
     """Return size of n in bits."""
     if n < 0: 
         raise ValueError('n < 0')
     
-    bits = 0 
-    while n > 256:  
+    bits = 0
+    N = int(n)
+    while N > 256:  
         bits = bits + 8
-        n = n >> 8
-    while n > 0: 
+        N = N >> 8
+    while N > 0: 
         bits = bits + 1
-        n = n >> 1
+        N = N >> 1
     return bits
-
+    
 def get_random_range(a, b):
     """Return random number between a and b."""
     if a > b:
@@ -218,7 +219,7 @@ def exgcd(a,b):
         x1 = x
         y2 = y1
         y1 = y
-        print("q = %s, r = %s, x= %s, y= %s, a = %s, b= %s, x2 = %s, x1= %s, y2= %s,y1= %s" %(q, r, x, y, a, b, x2, x1, y2, y1))
+        print ("q = %s, r = %s, x= %s, y= %s, a = %s, b= %s, x2 = %s, x1= %s, y2= %s,y1= %s" %(q, r, x, y, a, b, x2, x1, y2, y1))
     d = a
     d = a
     x = x2
