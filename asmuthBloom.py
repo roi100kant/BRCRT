@@ -27,16 +27,16 @@ class AsmuthBloom(object):
     def _check_base_condition(self, mPrimes):
         """Check if mPrimes satisfy the Asmuth-Bloom base condition.
         """
-        recomb_count = int(self._t)
-        all_count = int(self._n)
+        t = int(self._t)
+        n = int(self._n)
 
         Mr = 1
-        for i in range(1, recomb_count + 2):
+        for i in range(1, t + 2):
             Mr = Mr * mPrimes[i]
 
         pMs = mPrimes[0]
-        for i in range(1, recomb_count + 1):
-            pMs = pMs * mPrimes[all_count - i + 1]
+        for i in range(1, t + 1):
+            pMs = pMs * mPrimes[n - i + 1]
 
         #by definition - Mn >= Mr
         return Mr >= pMs
@@ -48,15 +48,16 @@ class AsmuthBloom(object):
         """
         if (h < k):
             raise Exception('Not enought bits for m_1')
-        all_count = self._n
+        n = self._n
+
         # _p is picked randomly big enough to support the multiplications
         self._bound = self._find_group_for_secret(k)
-        _p = self._find_group_for_secret(mathlib.bit_len(self._bound)*(self.n/self.s))
+        _p = self._find_group_for_secret(k*(self.n/self.s))
     
         while True:
             mPrimes = [_p]
-            # all_count consecutive primes starting from h-bit prime
-            for prime in mathlib.get_consecutive_primes(all_count, h):
+            # n consecutive primes starting from h-bit prime
+            for prime in mathlib.get_consecutive_primes(n, h):
                 mPrimes.append(prime)
             if (self._check_base_condition(mPrimes)):
                 return mPrimes
@@ -92,6 +93,12 @@ class AsmuthBloom(object):
                 break
         return y
 
+    # k is m_0_bits and h is m_1_bits
+    def _generate_coPrimes(self, k, h):
+        self.coprimes = self._get_pairwise_primes(k, h)
+        self._p = self.coprimes.pop(0)
+
+
     def generate_shares(self, secret, k, h):
         if(self._p == 0):
             if (mathlib.bit_len(secret) > k):
@@ -101,7 +108,7 @@ class AsmuthBloom(object):
                 raise ValueError("Secret is too long")
                 
         if(self.coprimes == None):
-            _generate_coprimes(self, secret, k, h)
+            self._generate_coPrimes(k, h)
  
         m = self.coprimes
         y = self._get_modulo_base(secret, m)
@@ -111,11 +118,6 @@ class AsmuthBloom(object):
             shares.append((y % m_i, m_i))
         # shares item format: (ki, di) ki - mods, di - coprimes
         return shares
-
-    # k is m_0_bits and h is m_1_bits
-    def _generate_coprimes(self, secret, k, h):
-        self.coprimes = self._get_pairwise_primes(k, h)
-        self._p = self.coprimes.pop(0)
 
     def combine_shares(self, shares):
         y_i = [x for x, _ in shares] # remainders
