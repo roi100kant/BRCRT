@@ -12,10 +12,10 @@ class AsmuthBloom(object):
         self._t = t
         self._s = s
         self._n = n
-        self.shares = None
-        self._p = 0
-        self._y = 0
-        
+        self.coprimes = None
+        self._bound = 0         # a prime number all secrets are lower than
+        self._p = 0             # a prime number bigger than bound^(n/s)
+
     def _find_group_for_secret(self, k):
         """Generate group Z/Zm_0 for secret, where m_0 is prime and m_0 > secret."""
         while True:
@@ -49,8 +49,10 @@ class AsmuthBloom(object):
         if (h < k):
             raise Exception('Not enought bits for m_1')
         all_count = self._n
-        # _p is picked randomly simple number
-        _p = self._find_group_for_secret(k)
+        # _p is picked randomly big enough to support the multiplications
+        self._bound = self._find_group_for_secret(k)
+        _p = self._find_group_for_secret(mathlib.bit_len(self._bound)*(self.n/self.s))
+    
         while True:
             mPrimes = [_p]
             # all_count consecutive primes starting from h-bit prime
@@ -59,18 +61,26 @@ class AsmuthBloom(object):
             if (self._check_base_condition(mPrimes)):
                 return mPrimes
 
+    # coPrimes[0] != p (we popped p before), coprimes = [m_1, ... ,Mn]
     def _prod(self, coprimes):
         """Calculate pMs for maximal amount of additions and multiplications"""
-        bottom_barrier = int(self._s)
-        pMs = self._p
+        s = int(self._s)
         n = int(self._n)
-        for i in range(1, bottom_barrier):
+
+        pMs = self._p
+        for i in range(1, s): # from 1 to s-1
             pMs = pMs * coprimes[n - i]
-        return pMs
-    
-    # coPrimes[0] != p (we popped p before)
+
+        t = self._t
+        Mr = 1
+        for i in range(0, t + 1): # from 0 to t
+            Mr = Mr * coprimes[i]
+       
+        return random.random()*(Mr-pMs) + pMs
+
+    # coPrimes[0] != p (we popped p before), coprimes = [m_1, ... ,Mn]
     def _get_modulo_base(self, secret, coprimes):
-        """Calculate M' = secret + some_number * taken_prime
+        """Calculate y = secret + some_number * taken_prime
         that should be less that coprimes prod.
         Modulos from this number will be used as shares.
         """
@@ -81,23 +91,32 @@ class AsmuthBloom(object):
             if (0 <= y < M):
                 break
         return y
-    
-    # k is m_0_bits and h is m_1_bits
-    def generate_shares(self, secret, k, h):
-        if (mathlib.bit_len(secret) > k):
-            raise ValueError("Secret is too long")
 
-        m = self._get_pairwise_primes(k, h)
-        self._p = m.pop(0)
-        
-        self._y = self._get_modulo_base(secret, m)
-        
-        self.shares = []
+    def generate_shares(self, secret, k, h):
+        if(self._p == 0):
+            if (mathlib.bit_len(secret) > k):
+                raise ValueError("Secret is too long")
+        else:
+            if(secret >= self._bound):
+                raise ValueError("Secret is too long")
+                
+        if(self.coprimes == None):
+            _generate_coprimes(self, secret, k, h)
+ 
+        m = self.coprimes
+        y = self._get_modulo_base(secret, m)
+
+        shares = []
         for m_i in m:
-            self.shares.append((self._y % m_i, m_i))
+            shares.append((y % m_i, m_i))
         # shares item format: (ki, di) ki - mods, di - coprimes
-        return self.shares
-   
+        return shares
+
+    # k is m_0_bits and h is m_1_bits
+    def _generate_coprimes(self, secret, k, h):
+        self.coprimes = self._get_pairwise_primes(k, h)
+        self._p = self.coprimes.pop(0)
+
     def combine_shares(self, shares):
         y_i = [x for x, _ in shares] # remainders
         m_i = [x for _, x in shares] # coprimes
@@ -105,28 +124,23 @@ class AsmuthBloom(object):
         d = y % self._p
         return d
 
-    # def combine_self_shares(self):
-    #     y_i = [x for x, _ in self.shares] # remainders
-    #     m_i = [x for _, x in self.shares] # coprimes
-    #     y = mathlib.garner_algorithm(y_i, m_i)
-    #     d = y % self._p
-    #     return d
-
-    def multshares(self, shares):
-        shares1 = [x for x, _ in self.shares]
-        shares2 = [x for x, _ in shares]
-        m = [x for _, x in shares]
-        self.shares = []
+    def multshares(self, shares1, shares2):
+        moduli1 = [x for x, _ in shares1]
+        moduli2 = [x for x, _ in shares2]
+        m = self.coprimes
+        mul_shares = []
         for i in range(0, m.__len__):
-            self.shares.append(((shares1[i]*shares2[i]) % m[i], m[i]))
+            mul_shares.append(((moduli1[i]*moduli2[i]) % m[i], m[i]))
+        return mul_shares
 
-    # def addshares(self, shares):
-    #     shares1 = [x for x, _ in self.shares]
-    #     shares2 = [x for x, _ in shares]
-    #     m = [x for _, x in shares]
-    #     self.shares = []
-    #     for i in range(0, m.__len__):
-    #         self.shares.append(((shares1[i]+shares2[i]) % m[i], m[i]))
+    def addshares(self, shares1, shares2):
+        moduli1 = [x for x, _ in shares1]
+        moduli2 = [x for x, _ in shares2]
+        m = self.coprimes
+        add_shares = []
+        for i in range(0, m.__len__):
+            add_shares.append(((moduli1[i] + moduli2[i]) % m[i], m[i]))
+        return add_shares
 
 def stringToLong(s):
     return int(binascii.hexlify(s), 16)

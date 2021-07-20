@@ -45,7 +45,7 @@ def runTests(n, t, s):
 
             print("secret in iteration ",numOfOps,":", secret1)
             print("recovered in iteration ",numOfOps,":", recovered)
-        
+
         if numOfOps < (int)(n/s):
             print("failed after %d operations expected %d", numOfOps, (int)(n/s))
         else:
