@@ -52,12 +52,12 @@ class AsmuthBloom(object):
 
         # _p is picked randomly big enough to support the multiplications
         self._bound = self._find_group_for_secret(k)
-        _p = self._find_group_for_secret(k*(self.n/self.s))
+        _p = self._find_group_for_secret(k*(int(self.n/self.s)))
     
         while True:
             mPrimes = [_p]
             # n consecutive primes starting from h-bit prime
-            for prime in mathlib.get_consecutive_primes(n, h):
+            for prime in mathlib.get_consecutive_primes(n, h + k*(int(self.n/self.s))):
                 mPrimes.append(prime)
             if (self._check_base_condition(mPrimes)):
                 return mPrimes
