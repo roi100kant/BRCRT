@@ -225,7 +225,7 @@ def exgcd(a,b):
     x = x2
     y = y2
     return (d,x,y)
-    
+
 def multiplicative_inverse(a, b):
     """Calculate multiplicative inverse of a modulo b."""
     m, _, _ = extended_gcd(a, b)
@@ -235,6 +235,9 @@ def multiplicative_inverse(a, b):
 
 def garner_algorithm(v, m):
     """Garner algorithm for calculating CRT."""
+    v = [int(x) for x in v] # remainders
+    m = [int(x) for x in m] # coprimes
+
     C = [0]*len(m)
     for i in range(1, len(m)):
         C[i] = 1

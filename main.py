@@ -1,57 +1,79 @@
+from array import array
 from os import system
 import asmuthBloom as A
 import random
+import mathlib as M
 
 def runTests(n, t, s):
     
-    modeSecret = int(input("enter mode for secret input:\n[0] random\n[1] custom\nenter choice: "))
-    if modeSecret == 0:
-        maxNum = int(input("enter upper bound for secret: "))
-    
-    kBytes = int(input("enter number of bytes for prime p (needs to be more bytes than the secret bytes): "))
-    hBytes = int(input("enter number of bytes for primes m_i (needs to be more bytes than p bytes): "))
+    maxNum = int(input("enter upper bound for secrets during the tests (for random purposes): "))
+
+    print("enter number of bytes for prime p (needs to be more bytes than ", M.bit_len(maxNum) ," bytes): ")
+    kBytes = int(input())
+
+    print("enter number of bytes for primes m_i (needs to be more than ", kBytes ," bytes): ")
+    hBytes = int(input())
 
     test = int(input("how many tests would you like to do: "))
-    #mul = int(input("how many multiplication would you like to do: (n/s = %d)", (n/s)))
-    #add = int(input("how many addition would you like to do: (n/s = %d)", (n/s)))
-    secret1 = 0
-    secret2 = 0
+    print("enter number of secrets to mul/add (n/s =", (n/s),"):")
+    numSecrets = int(input())
+    mode = int(input("choose operation: 0 - multiplication, 1 - addition: "))
     
-    for i in range(0, test):
-        if modeSecret == 0:
-            secret1 = int(random.random()*maxNum)
-            secret2 = int(random.random()*maxNum)
+    op = int(input("Random M - 0, Optimized M (M = pMs) - 1: "))
+    ab = A.AsmuthBloom(n, t, s, op) 
+    
+    #! generate secrets and encode their secret shares
+    secrets = []
+    secretTemp = int(input("enter value to secret or 0 for random the rest: "))
+    for i in range(0, numSecrets):
+        if(secretTemp == 0):
+            secrets.append(random.random()*maxNum)
         else:
-            secret1 = input(int("enter secret1 for next test: "))
-            secret2 = input(int("enter secret2 for next test: "))
-        print("")
-        print("test number: ", i)
-        ab1 = A.AsmuthBloom(n, t, s)
-        ab2 = A.AsmuthBloom(n, t, s)
-        shares1 = ab1.generate_shares(secret1, kBytes, hBytes)
-        shares2 = ab2.generate_shares(secret2, kBytes, hBytes) # for testing purposes using 
+            secrets.append(secretTemp)
+            secretTemp = int(input("enter value for secret or 0 for random the rest: "))
+    # res array which contains the amount of secrets which were succe
+    res = [0 for i in range(0, numSecrets)]
+    
+    for i in range(0, test):        
+        shares = []
+        for i in range(0, numSecrets):
+            shares.append(ab.generate_shares(secrets[i], kBytes, hBytes))
 
-        recovered = secret1
+        secret = secrets[0]
+        secret_shares = shares[0]
+
+        recovered = secret
         numOfOps = 0
-        while (recovered == secret1):
-            secret1 *= secret2
-            ab1.multshares(shares2)
+        for i in range(1, numSecrets):
+            if mode == 0:
+                secret *= secrets[i]
+                secret_shares = ab.multshares(secret_shares, shares[i])
+            else:
+                secret += secrets[i]
+                secret_shares = ab.addshares(secret_shares, shares[i])
 
-            #    secret1 += secret2
-            #    ab1.addshares(shares2)
-
-            recovered = ab1.combine_self_shares()
+            recovered = ab.combine_shares(secret_shares)
+            if (recovered != secret):
+                break
             numOfOps += 1
 
-            print("secret in iteration ",numOfOps,":", secret1)
-            print("recovered in iteration ",numOfOps,":", recovered)
+        res[numOfOps] += 1
 
-        if numOfOps < (int)(n/s):
-            print("failed after %d operations expected %d", numOfOps, (int)(n/s))
-        else:
-            print("succesfuly performed")     
+    #! print the results for the tests  
+    print("| Results of ", test ," tests:           ")
+    print("|----------------------------------------")
+    print("| num of secrets: ", numSecrets ,"       ")
+    print("| ratio of participants to s (maximum number for no information):", n/s)
+    if (op == 0):
+        print("| using random generated M for the secrets, the results are:")
+    else:
+        print("| using Optimal M(=pMs) for the secrets, the results are:")
+    for i in range(0, numSecrets):
+        print("| for " ,i, " arithmetic procedures: ", res[i], "/", test ,"successes to restore the secret")
+    print("|-------------------------------------------")
+
             
-def main1():
+def main():
     val = 0
     n = t = s = 0
     while 1:
@@ -77,19 +99,19 @@ def main1():
 
         val = 0
 
-def main():
+def main1():
     success1 = 0
     success2 = 0
     success3 = 0
     
-    ab1 = A.AsmuthBloom(21, 9, 5)
-    secret = 1234646556124891264991237098040000000000000000000000000000000000000
-    tests = 30000
+    ab = A.AsmuthBloom(10, 6, 2)
+    secret = 123456
+    tests = 1500
     for i in range (0, tests):
-        shares = ab1.generate_shares(secret, 1000000, 200000000)
-        restore1 = ab1.combine_shares([shares[9]])
-        restore2 = ab1.combine_shares([shares[2],shares[3],shares[9]])
-        restore3 = ab1.combine_shares([shares[10], shares[15], shares[12],shares[3],shares[9]])
+        shares = ab.generate_shares(secret, 1000, 2000)
+        restore1 = ab.combine_shares([shares[9]])
+        restore2 = ab.combine_shares([shares[2],shares[3],shares[9]])
+        restore3 = ab.combine_shares([shares[10], shares[15], shares[12],shares[3],shares[9]])
         if(restore1 == secret):
             success1 += 1
         if(restore2 == secret):
@@ -101,3 +123,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+# ab = A.AsmuthBloom(10,6,2,0)
+# shares = ab.generate_shares(1000000, 300, 500)
+# res = ab.combine_shares(shares)
+# print(res)

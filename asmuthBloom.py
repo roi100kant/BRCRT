@@ -5,7 +5,7 @@ import random
 import sys
 
 class AsmuthBloom(object):
-    def __init__(self, n, t, s): 
+    def __init__(self, n, t, s, opM): 
         # s = the maximal number of participants who can't get any information on the secret
         # t = threshold for uncovering the secret (shares to recombine, all shares)
         # n = number of participants
@@ -15,6 +15,7 @@ class AsmuthBloom(object):
         self.coprimes = None
         self._bound = 0         # a prime number all secrets are lower than
         self._p = 0             # a prime number bigger than bound^(n/s)
+        self._M = opM
 
     def _find_group_for_secret(self, k):
         """Generate group Z/Zm_0 for secret, where m_0 is prime and m_0 > secret."""
@@ -52,12 +53,12 @@ class AsmuthBloom(object):
 
         # _p is picked randomly big enough to support the multiplications
         self._bound = self._find_group_for_secret(k)
-        _p = self._find_group_for_secret(k*(int(self.n/self.s)))
-    
+        _p = self._find_group_for_secret(k*(int(n/self._s)))
+  
         while True:
             mPrimes = [_p]
             # n consecutive primes starting from h-bit prime
-            for prime in mathlib.get_consecutive_primes(n, h + k*(int(self.n/self.s))):
+            for prime in mathlib.get_consecutive_primes(n, h + k*(int(n/self._s))):
                 mPrimes.append(prime)
             if (self._check_base_condition(mPrimes)):
                 return mPrimes
@@ -67,17 +68,18 @@ class AsmuthBloom(object):
         """Calculate pMs for maximal amount of additions and multiplications"""
         s = int(self._s)
         n = int(self._n)
-
+        
         pMs = self._p
         for i in range(1, s): # from 1 to s-1
             pMs = pMs * coprimes[n - i]
-
-        t = self._t
-        Mr = 1
-        for i in range(0, t + 1): # from 0 to t
-            Mr = Mr * coprimes[i]
-       
-        return random.random()*(Mr-pMs) + pMs
+        if(self._M == 0):
+            t = int(self._t)
+            Mr = 1
+            for i in range(0, t + 1): # from 0 to t
+                Mr = Mr * coprimes[i]
+            return random.randint(pMs,Mr)
+        else:
+            return pMs
 
     # coPrimes[0] != p (we popped p before), coprimes = [m_1, ... ,Mn]
     def _get_modulo_base(self, secret, coprimes):
@@ -87,7 +89,7 @@ class AsmuthBloom(object):
         """
         M = self._prod(coprimes)
         while True:
-            A = mathlib.get_random_range(1, (M - secret) / self._p)
+            A = random.randint(1, (M - secret) // self._p)
             y = secret + A * self._p
             if (0 <= y < M):
                 break
@@ -98,7 +100,6 @@ class AsmuthBloom(object):
         self.coprimes = self._get_pairwise_primes(k, h)
         self._p = self.coprimes.pop(0)
 
-
     def generate_shares(self, secret, k, h):
         if(self._p == 0):
             if (mathlib.bit_len(secret) > k):
@@ -106,10 +107,10 @@ class AsmuthBloom(object):
         else:
             if(secret >= self._bound):
                 raise ValueError("Secret is too long")
-                
+
         if(self.coprimes == None):
             self._generate_coPrimes(k, h)
- 
+
         m = self.coprimes
         y = self._get_modulo_base(secret, m)
 
@@ -131,7 +132,7 @@ class AsmuthBloom(object):
         moduli2 = [x for x, _ in shares2]
         m = self.coprimes
         mul_shares = []
-        for i in range(0, m.__len__):
+        for i in range(0, len(m)):
             mul_shares.append(((moduli1[i]*moduli2[i]) % m[i], m[i]))
         return mul_shares
 
