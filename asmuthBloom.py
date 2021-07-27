@@ -51,7 +51,7 @@ class AsmuthBloom(object):
         n = self._n
 
         # _p is picked randomly big enough to support the multiplications
-        self._bound = self._find_group_for_secret(k)
+        self._bound = self._find_group_for_secret(k + 1)
         big_p_bit_len = int(k*(n // self._s))
         _p = self._find_group_for_secret(big_p_bit_len)
 
