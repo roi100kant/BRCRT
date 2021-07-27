@@ -44,8 +44,8 @@ def runTests(n, t, s):
                 secret += secrets[i]
                 secret_shares = ab.addshares(secret_shares, shares[i])
 
-            Mr = secret_shares[0:t + 1]
-            recovered = ab.combine_shares(Mr)
+            # Mr = secret_shares[0:t + 1]
+            recovered = ab.combine_shares(secret_shares)
             if (recovered != secret):
                 break
             numOfOps += 1
@@ -85,9 +85,14 @@ def main():
             global mode
             global op
 
-            decision = int(input("[1] use values 1:\n\nn = 10\nt = 6\ns = 2\nmaxNum = 10000\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 6\nmultiplication\noptimal M = yes\n\n[2] use values 2:\n\nn = 21\nt = 13\ns = 3\nmaxNum = 60\nkBytes = 7\nhBytes = 9\ntests = 1000\nnum of secrets = 5\nmultiplication\noptimal M = no\n\n[3] use values 3:\n\nn = 12\nt = 6\ns = 2\nmaxNum = 1500\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 400\naddition\noptimal M = yes\n\n[4] custom values\n"))
+            print("\n[1] use values 1:")
+            print("n = 10\nt = 6\ns = 2\nmaxNum = 10000\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 6\nusing multiplication\noptimal M = yes\n")
+            print("\n[2] use values 2:")
+            print("n = 21\nt = 13\ns = 3\nmaxNum = 60\nkBytes = 7\nhBytes = 9\ntests = 1000\nnum of secrets = 5\nusing multiplication\noptimal M = no\n")
+            print("\n[3] use values 3:")
+            print("n = 12\nt = 6\ns = 2\nmaxNum = 1500\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 400\nusing addition\noptimal M = yes\n")
+            decision = int(input("[4] custom values\n\n enter choice: "))
             if(decision == 1):
-                # print("n = 10\nt = 6\ns = 2\nmaxNum = 10000\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 6\nmode = 0\noptimal M = yes\n")
                 n = 10
                 t = 6
                 s = 2
@@ -100,20 +105,18 @@ def main():
                 op = 1
 
             elif(decision == 2):
-                # print("n = 21\nt = 13\ns = 3\nmaxNum = 60\nkBytes = 7\nhBytes = 9\ntests = 1000\nnum of secrets = 5\nmode = 0\noptimal M = no\n")
                 n = 21
                 t = 13
                 s = 3
                 maxNum = 60
                 kBytes = 7
                 hBytes = 9
-                test = 1000
-                numSecrets = 30
+                test = 100
+                numSecrets = 8
                 mode = 0
                 op = 0
 
             elif(decision == 3):
-                # print("n = 12\nt = 6\ns = 2\nmaxNum = 1500\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 400\nmode = addition\noptimal M = yes\n")
                 n = 12
                 t = 6
                 s = 2
