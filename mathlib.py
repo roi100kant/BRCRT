@@ -146,6 +146,7 @@ def primality_test_for_sg_prime(n):
     return False
 
 def get_prime(k):
+    k = int(k)
     """Generate k-bit random prime number"""
     while True:
         p = _random.getrandbits(k)

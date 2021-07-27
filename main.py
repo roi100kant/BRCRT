@@ -4,36 +4,28 @@ import asmuthBloom as A
 import random
 import mathlib as M
 
-def runTests(n, t, s):
-    
-    maxNum = int(input("enter upper bound for secrets during the tests (for random purposes): "))
+maxNum = 0
+kBytes = 0
+hBytes = 0
+numSecrets = 0
+test = 0
+mode = 0
+op = 0
 
-    print("enter number of bytes for prime p (needs to be more bytes than ", M.bit_len(maxNum) ," bytes): ")
-    kBytes = int(input())
-
-    print("enter number of bytes for primes m_i (needs to be more than ", kBytes ," bytes): ")
-    hBytes = int(input())
-
-    test = int(input("how many tests would you like to do: "))
-    print("enter number of secrets to mul/add (n/s =", (n/s),"):")
-    numSecrets = int(input())
-    mode = int(input("choose operation: 0 - multiplication, 1 - addition: "))
-    
-    op = int(input("Random M - 0, Optimized M (M = pMs) - 1: "))
+def runTests(n, t, s): 
     ab = A.AsmuthBloom(n, t, s, op) 
-    
     #! generate secrets and encode their secret shares
     secrets = []
     secretTemp = int(input("enter value to secret or 0 for random the rest: "))
     for i in range(0, numSecrets):
         if(secretTemp == 0):
-            secrets.append(random.random()*maxNum)
+            secrets.append(random.randint(0,maxNum))
         else:
             secrets.append(secretTemp)
             secretTemp = int(input("enter value for secret or 0 for random the rest: "))
     # res array which contains the amount of secrets which were succe
-    res = [0 for i in range(0, numSecrets)]
-    
+    res = [0]*numSecrets
+
     for i in range(0, test):        
         shares = []
         for i in range(0, numSecrets):
@@ -52,7 +44,8 @@ def runTests(n, t, s):
                 secret += secrets[i]
                 secret_shares = ab.addshares(secret_shares, shares[i])
 
-            recovered = ab.combine_shares(secret_shares)
+            Mr = secret_shares[0:t + 1]
+            recovered = ab.combine_shares(Mr)
             if (recovered != secret):
                 break
             numOfOps += 1
@@ -60,16 +53,16 @@ def runTests(n, t, s):
         res[numOfOps] += 1
 
     #! print the results for the tests  
-    print("| Results of ", test ," tests:           ")
+    print("\n\n| Results of ", test ," tests:           ")
     print("|----------------------------------------")
     print("| num of secrets: ", numSecrets ,"       ")
-    print("| ratio of participants to s (maximum number for no information):", n/s)
+    print("| ratio of participants to s (maximum number for no information):", n//s)
     if (op == 0):
         print("| using random generated M for the secrets, the results are:")
     else:
         print("| using Optimal M(=pMs) for the secrets, the results are:")
     for i in range(0, numSecrets):
-        print("| for " ,i, " arithmetic procedures: ", res[i], "/", test ,"successes to restore the secret")
+        print("| for " ,i+1, " secrets multiplied/added: ", res[i], "/", test ,"maximal successes to restore the secret")
     print("|-------------------------------------------")
 
             
@@ -84,9 +77,73 @@ def main():
             val = int(input("pls enter a choice: "))
         
         if val == 1:
-            n = float(input("enter number of participants(n): "))
-            t = float(input("enter number of participants to discover the secret(t): "))
-            s = float(input("enter number of participants who will gain no knowledge(s): "))
+            global maxNum
+            global kBytes
+            global hBytes
+            global test
+            global numSecrets
+            global mode
+            global op
+
+            decision = int(input("[1] use values 1:\n\nn = 10\nt = 6\ns = 2\nmaxNum = 10000\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 6\nmultiplication\noptimal M = yes\n\n[2] use values 2:\n\nn = 21\nt = 13\ns = 3\nmaxNum = 60\nkBytes = 7\nhBytes = 9\ntests = 1000\nnum of secrets = 5\nmultiplication\noptimal M = no\n\n[3] use values 3:\n\nn = 12\nt = 6\ns = 2\nmaxNum = 1500\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 400\naddition\noptimal M = yes\n\n[4] custom values\n"))
+            if(decision == 1):
+                # print("n = 10\nt = 6\ns = 2\nmaxNum = 10000\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 6\nmode = 0\noptimal M = yes\n")
+                n = 10
+                t = 6
+                s = 2
+                maxNum = 10000
+                kBytes = 20
+                hBytes = 30
+                test = 1000
+                numSecrets = 5
+                mode = 0
+                op = 1
+
+            elif(decision == 2):
+                # print("n = 21\nt = 13\ns = 3\nmaxNum = 60\nkBytes = 7\nhBytes = 9\ntests = 1000\nnum of secrets = 5\nmode = 0\noptimal M = no\n")
+                n = 21
+                t = 13
+                s = 3
+                maxNum = 60
+                kBytes = 7
+                hBytes = 9
+                test = 1000
+                numSecrets = 30
+                mode = 0
+                op = 0
+
+            elif(decision == 3):
+                # print("n = 12\nt = 6\ns = 2\nmaxNum = 1500\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 400\nmode = addition\noptimal M = yes\n")
+                n = 12
+                t = 6
+                s = 2
+                maxNum = 1500
+                kBytes = 20
+                hBytes = 30
+                test = 1000
+                numSecrets = 500
+                mode = 1
+                op = 1
+
+            else:
+                n = int(input("enter number of participants(n): "))
+                t = int(input("enter number of participants to discover the secret(t): "))
+                s = int(input("enter number of participants who will gain no knowledge(s): "))
+
+                maxNum = int(input("enter upper bound for secrets during the tests (for random purposes): "))
+
+                print("enter number of bytes for prime p (needs to be more bytes than ", M.bit_len(maxNum) ," bytes): ")
+                kBytes = int(input())
+
+                print("enter number of bytes for primes m_i (needs to be more than ", kBytes ," bytes): ")
+                hBytes = int(input())
+
+                test = int(input("how many tests would you like to do: "))
+                print("enter number of secrets to mul/add (n/s =", (n // s),"):")
+                numSecrets = int(input())
+                mode = int(input("choose operation: 0 - multiplication, 1 - addition: "))
+
+                op = int(input("Random M - 0, Optimized M (M = pMs) - 1: "))
 
         if val == 2:
             if n == 0:
@@ -123,7 +180,11 @@ def main1():
 
 if __name__ == "__main__":
     main()
-# ab = A.AsmuthBloom(10,6,2,0)
-# shares = ab.generate_shares(1000000, 300, 500)
-# res = ab.combine_shares(shares)
-# print(res)
+#ab = A.AsmuthBloom(10,6,2,1)
+#shares1 = ab.generate_shares(10, 5, 6)
+#shares2 = ab.generate_shares(15, 5, 6)
+#print(ab.combine_shares(shares1))
+#print(ab.combine_shares(shares2))
+#shares1 = ab.multshares(shares1,shares2)
+#res = ab.combine_shares(shares1)
+#print(res)
