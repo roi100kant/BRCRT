@@ -12,7 +12,6 @@ class AsmuthBloom(object):
         self._t = t
         self._s = s
         self.coprimes = None
-        self._bound = 0         # a prime number all secrets are lower than
         self._p = 0             # a prime number bigger than bound^(n/s)
         self._M = opM
 
