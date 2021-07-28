@@ -44,7 +44,7 @@ def runTests(n, t, s):
 
             # Mr = secret_shares[0:t + 1]
             recovered = ab.combine_shares(secret_shares)
-            if ((recovered) != (secret)):
+            if ((recovered % ab._p) != (secret % ab._p)):
                 break
             numOfOps += 1
 
@@ -91,14 +91,14 @@ def main():
             print("n = 12\nt = 6\ns = 2\nmaxNum = 1500\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 400\nusing addition\noptimal M = yes\n")
             decision = int(input("[4] custom values\n\n enter choice: "))
             if(decision == 1):
-                n = 10
+                n = 14
                 t = 8
                 s = 2
                 maxNum = 10000
                 kBytes = 20
                 hBytes = 30
                 test = 100
-                numSecrets = 8 
+                numSecrets = 10 
                 mode = 0
                 op = 1
 
