@@ -44,7 +44,7 @@ def runTests(n, t, s):
 
             # Mr = secret_shares[0:t + 1]
             recovered = ab.combine_shares(secret_shares)
-            if ((recovered % ab._p) != (secret % ab._p)):
+            if ((recovered) != (secret)):
                 break
             numOfOps += 1
 
