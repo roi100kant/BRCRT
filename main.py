@@ -1,5 +1,3 @@
-from array import array
-from os import system
 import asmuthBloom as A
 import random
 import mathlib as M
@@ -46,7 +44,7 @@ def runTests(n, t, s):
 
             # Mr = secret_shares[0:t + 1]
             recovered = ab.combine_shares(secret_shares)
-            if (recovered != secret):
+            if ((recovered % ab._p) != (secret % ab._p)):
                 break
             numOfOps += 1
 
@@ -99,8 +97,8 @@ def main():
                 maxNum = 10000
                 kBytes = 20
                 hBytes = 30
-                test = 1000
-                numSecrets = 5
+                test = 100
+                numSecrets = 8 
                 mode = 0
                 op = 1
 
@@ -108,9 +106,9 @@ def main():
                 n = 21
                 t = 13
                 s = 3
-                maxNum = 60
-                kBytes = 7
-                hBytes = 9
+                maxNum = 12345
+                kBytes = 20
+                hBytes = 30
                 test = 100
                 numSecrets = 8
                 mode = 0
@@ -124,7 +122,7 @@ def main():
                 kBytes = 20
                 hBytes = 30
                 test = 1000
-                numSecrets = 500
+                numSecrets = 50
                 mode = 1
                 op = 1
 
@@ -158,28 +156,6 @@ def main():
             exit(0)
 
         val = 0
-
-def main1():
-    success1 = 0
-    success2 = 0
-    success3 = 0
-    
-    ab = A.AsmuthBloom(10, 6, 2)
-    secret = 123456
-    tests = 1500
-    for i in range (0, tests):
-        shares = ab.generate_shares(secret, 1000, 2000)
-        restore1 = ab.combine_shares([shares[9]])
-        restore2 = ab.combine_shares([shares[2],shares[3],shares[9]])
-        restore3 = ab.combine_shares([shares[10], shares[15], shares[12],shares[3],shares[9]])
-        if(restore1 == secret):
-            success1 += 1
-        if(restore2 == secret):
-            success2 += 1
-        if(restore3 == secret):
-            success3 += 1
-    print("num of tests: ", tests)
-    print(success1," ",success2," ",success3)
 
 if __name__ == "__main__":
     main()

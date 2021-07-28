@@ -51,14 +51,12 @@ class AsmuthBloom(object):
         n = self._n
 
         # _p is picked randomly big enough to support the multiplications
-        self._bound = self._find_group_for_secret(k + 1)
-        big_p_bit_len = int(k*(n // self._s))
-        _p = self._find_group_for_secret(big_p_bit_len)
+        _p = self._find_group_for_secret(k)
 
         while True:
             mPrimes = [_p]
             # n consecutive primes starting from h-bit prime
-            for prime in mathlib.get_consecutive_primes(n, h + (k - 1)*(n // self._s)):
+            for prime in mathlib.get_consecutive_primes(n, h):
                 mPrimes.append(prime)
             if (self._check_base_condition(mPrimes)):
                 return mPrimes
@@ -101,12 +99,8 @@ class AsmuthBloom(object):
         self._p = self.coprimes.pop(0)
 
     def generate_shares(self, secret, k, h):
-        if(self._p == 0):
-            if (mathlib.bit_len(secret) > k):
-                raise ValueError("Secret is too long")
-        else:
-            if(secret >= self._bound):
-                raise ValueError("Secret is too long")
+        if (mathlib.bit_len(secret) > k):
+            raise ValueError("Secret is too long")
 
         if(self.coprimes == None):
             self._generate_coPrimes(k, h)
