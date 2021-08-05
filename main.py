@@ -84,11 +84,11 @@ def main():
             global op
 
             print("\n[1] use values 1:")
-            print("n = 10\nt = 6\ns = 2\nmaxNum = 10000\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 6\nusing multiplication\noptimal M = yes\n")
+            print("n = 14\nt = 8\ns = 2\nmaxNum = 10000\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 8\nusing multiplication\noptimal M = yes\n")
             print("\n[2] use values 2:")
             print("n = 21\nt = 13\ns = 3\nmaxNum = 60\nkBytes = 7\nhBytes = 9\ntests = 1000\nnum of secrets = 5\nusing multiplication\noptimal M = no\n")
             print("\n[3] use values 3:")
-            print("n = 12\nt = 6\ns = 2\nmaxNum = 1500\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 400\nusing addition\noptimal M = yes\n")
+            print("n = 12\nt = 8\ns = 2\nmaxNum = 1500\nkBytes = 20\nhBytes = 30\ntests = 1000\nnum of secrets = 400\nusing addition\noptimal M = yes\n")
             decision = int(input("[4] custom values\n\n enter choice: "))
             if(decision == 1):
                 n = 14
@@ -97,8 +97,8 @@ def main():
                 maxNum = 10000
                 kBytes = 20
                 hBytes = 30
-                test = 100
-                numSecrets = 10 
+                test = 1000
+                numSecrets = 8
                 mode = 0
                 op = 1
 
@@ -106,13 +106,13 @@ def main():
                 n = 21
                 t = 13
                 s = 3
-                maxNum = 12345
-                kBytes = 20
-                hBytes = 30
-                test = 100
-                numSecrets = 8
+                maxNum = 60
+                kBytes = 7
+                hBytes = 9
+                test = 1000
+                numSecrets = 5
                 mode = 0
-                op = 1
+                op = 0
 
             elif(decision == 3):
                 n = 12
@@ -121,9 +121,9 @@ def main():
                 maxNum = 1500
                 kBytes = 20
                 hBytes = 30
-                test = 100
+                test = 1000
                 numSecrets = 9
-                mode = 0
+                mode = 1
                 op = 1
 
             else:
